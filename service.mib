@@ -1,0 +1,107 @@
+
+SERVICE-HEALTH DEFINITIONS ::= BEGIN
+
+IMPORTS
+	OBJECT-TYPE, MODULE-IDENTITY, enterprises,
+	Integer32
+		FROM SNMPv2-SMI;
+
+serviceModule MODULE-IDENTITY
+	LAST-UPDATED "201612022006Z"
+	ORGANIZATION
+		"UFRGS"
+	CONTACT-INFO
+		"UFRGS"
+	DESCRIPTION
+		"MODULE FOR MONITORING SERVICES"
+::= { enterprises 2 }
+
+
+serviceTable  OBJECT-TYPE
+	SYNTAX SEQUENCE OF ServiceEntry
+	MAX-ACCESS not-accessible
+	STATUS     current
+	DESCRIPTION
+		""
+	::= { enterprises 3 }
+
+serviceEntry  OBJECT-TYPE
+	SYNTAX 	ServiceEntry
+	MAX-ACCESS not-accessible
+	STATUS     current
+	DESCRIPTION
+		""
+	INDEX { serviceId }
+	::= { serviceTable 1 }
+
+ServiceEntry ::= SEQUENCE {
+	serviceId
+		Integer32,
+	serviceName
+		OCTET STRING,
+	serviceStatus
+		OCTET STRING,
+	upTime
+		OCTET STRING,
+	fullPath
+		OCTET STRING
+}
+
+serviceId  OBJECT-TYPE
+	SYNTAX     Integer32 (0..1000)
+	MAX-ACCESS read-write
+	STATUS     current
+	DESCRIPTION
+		""
+	::= { serviceEntry 1 }
+
+serviceName  OBJECT-TYPE
+	SYNTAX     OCTET STRING
+	MAX-ACCESS read-write
+	STATUS     current
+	DESCRIPTION
+		""
+	::= { serviceEntry 2 }
+
+serviceStatus  OBJECT-TYPE
+	SYNTAX     OCTET STRING
+	MAX-ACCESS read-only
+	STATUS     current
+	DESCRIPTION
+		""
+	::= { serviceEntry 3 }
+
+upTime  OBJECT-TYPE
+	SYNTAX     OCTET STRING
+	MAX-ACCESS read-write
+	STATUS     current
+	DESCRIPTION
+		""
+	::= { serviceEntry 4 }
+
+fullPath  OBJECT-TYPE
+	SYNTAX     OCTET STRING
+	MAX-ACCESS read-write
+	STATUS     current
+	DESCRIPTION
+		""
+	::= { serviceEntry 5 }
+
+simpleCounter  OBJECT-TYPE
+	SYNTAX     Integer32
+	MAX-ACCESS read-write
+	STATUS     current
+	DESCRIPTION
+		""
+	::= { enterprises 4 }
+
+serviceTableCounter  OBJECT-TYPE
+	SYNTAX     Integer32
+	MAX-ACCESS read-only
+	STATUS     current
+	DESCRIPTION
+		""
+	::= { enterprises 5 }
+END
+
+-- This MIB was created using NuDesign Technologies' Visual MIBuilder (Ver 5.2).

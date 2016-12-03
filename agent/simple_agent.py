@@ -64,6 +64,12 @@ serviceTableSnmpd.setRowCell(3, agent.OctetString(""))
 serviceTableSnmpd.setRowCell(4, agent.OctetString(""))
 serviceTableSnmpd.setRowCell(5, agent.OctetString(""))
 
+serviceTableHttpd = serviceTable.addRow([agent.Integer32(1)])
+serviceTableHttpd.setRowCell(2, agent.OctetString("httpd"))
+serviceTableHttpd.setRowCell(3, agent.OctetString(""))
+serviceTableHttpd.setRowCell(4, agent.OctetString(""))
+serviceTableHttpd.setRowCell(5, agent.OctetString(""))
+
 simpleCounter = agent.Integer32(
     oidstr="SERVICE-HEALTH::simpleCounter",
     writable=True
@@ -120,6 +126,15 @@ while (loop):
         serviceTableSnmpd.setRowCell(5, agent.OctetString(output[3]))
     else:
         serviceTableSnmpd.setRowCell(3, agent.OctetString("stopped"))
+
+    output = subprocess.Popen(["bash", "check_service.sh", "httpd"], stdout=subprocess.PIPE).communicate()[0]
+    output = output.split('\n', -1)
+    if output[0] == '1':
+        serviceTableHttpd.setRowCell(3, agent.OctetString("running"))
+        serviceTableHttpd.setRowCell(4, agent.OctetString(output[2]))
+        serviceTableHttpd.setRowCell(5, agent.OctetString(output[3]))
+    else:
+        serviceTableHttpd.setRowCell(3, agent.OctetString("stopped"))
 
 print("{0}: Terminating.".format(prgname))
 agent.shutdown()

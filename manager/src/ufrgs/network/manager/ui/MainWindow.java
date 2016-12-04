@@ -8,11 +8,9 @@ import ufrgs.network.manager.model.NetworkInterfaceTableModel;
 import ufrgs.network.manager.model.ServiceTableModel;
 import ufrgs.network.manager.network.Database;
 import ufrgs.network.manager.network.Discover;
-import ufrgs.network.manager.network.InfoProvider;
 import ufrgs.network.manager.network.InfoUpdater;
 
 import javax.swing.*;
-import javax.xml.crypto.Data;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -20,7 +18,6 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by lucas on 12/3/16.
@@ -38,7 +35,8 @@ public class MainWindow {
     private JTextField lastUpdateField;
     private JTextField curSystemLocation;
     private JButton updateCurSystemLocation;
-    private JTable networkIntefacesTable;
+    private JTable networkInterfacesTable;
+    private JSlider searchTimeoutSlider;
     private JFrame mainFrame;
     private Database database;
 
@@ -49,7 +47,7 @@ public class MainWindow {
         database = Database.loadFromFile();
         clientTable.setModel(new ClientTableModel(database.getClientList()));
         servicesTable.setModel(new ServiceTableModel(new ArrayList<ClientService>()));
-        networkIntefacesTable.setModel(new NetworkInterfaceTableModel(new ArrayList<NetworkInterface>()));
+        networkInterfacesTable.setModel(new NetworkInterfaceTableModel(new ArrayList<NetworkInterface>()));
 
         clientTable.addMouseListener(new MouseAdapter() {
             @Override
@@ -61,7 +59,7 @@ public class MainWindow {
                     curSystemDescription.setText(client.getSystemDescription());
                     curSystemLocation.setText(client.getSystemLocation());
                     servicesTable.setModel(new ServiceTableModel(client.getClientServiceList()));
-                    networkIntefacesTable.setModel(new NetworkInterfaceTableModel(client.getNetworkInterfaceList()));
+                    networkInterfacesTable.setModel(new NetworkInterfaceTableModel(client.getNetworkInterfaceList()));
                 }
             }
         });
@@ -69,14 +67,16 @@ public class MainWindow {
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                searchButton.setEnabled(false);
                 try {
-                    database.addClients(new Discover().searchClients(searchStart.getText(), searchPort.getText()));
+                    database.addClients(new Discover().searchClients(searchStart.getText(), searchPort.getText(), searchTimeoutSlider.getValue()));
                     clientTable.setModel(new ClientTableModel(database.getClientList()));
                     clientsFoundField.setText(String.valueOf(database.getClientList().size()));
                     lastUpdateField.setText(database.getLastUpdate());
-                } catch (IOException e1) {
+                } catch (IOException | InterruptedException e1) {
                     e1.printStackTrace();
                 }
+                searchButton.setEnabled(true);
             }
         });
 
@@ -112,7 +112,7 @@ public class MainWindow {
                     if (!curAddress.getText().equals("")) {
                         Client client = database.getClient(curAddress.getText());
                         servicesTable.setModel(new ServiceTableModel(client.getClientServiceList()));
-                        networkIntefacesTable.setModel(new NetworkInterfaceTableModel(client.getNetworkInterfaceList()));
+                        networkInterfacesTable.setModel(new NetworkInterfaceTableModel(client.getNetworkInterfaceList()));
                         curAddress.setText(client.getAddress());
                         //curSystemLocation.setText(client.getSystemLocation());
                         curSystemDescription.setText(client.getSystemDescription());

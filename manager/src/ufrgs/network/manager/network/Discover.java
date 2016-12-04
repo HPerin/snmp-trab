@@ -11,6 +11,7 @@ import org.snmp4j.transport.DefaultSshTransportMapping;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import ufrgs.network.manager.data.Client;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -46,9 +47,9 @@ public class Discover {
         snmp = new Snmp(transportMapping);
     }
 
-    public List<Client> searchClients(String address, String port) throws IOException {
+    public List<Client> searchClients(String address, String port, Integer timeout) throws IOException, InterruptedException {
         communityTarget.setRetries(1);
-        communityTarget.setTimeout(10);
+        communityTarget.setTimeout(timeout);
 
         String nums[] = address.split(Pattern.quote("."));
 

@@ -86,22 +86,6 @@ fullPath  OBJECT-TYPE
 	DESCRIPTION
 		""
 	::= { serviceEntry 5 }
-
-addServiceName  OBJECT-TYPE
-	SYNTAX     OCTET STRING
-	MAX-ACCESS read-write
-	STATUS     current
-	DESCRIPTION
-		""
-	::= { enterprises 4 }
-
-delServiceName  OBJECT-TYPE
-	SYNTAX     OCTET STRING
-	MAX-ACCESS read-write
-	STATUS     current
-	DESCRIPTION
-		""
-	::= { enterprises 5 }
 END
 
 -- This MIB was created using NuDesign Technologies' Visual MIBuilder (Ver 5.2).

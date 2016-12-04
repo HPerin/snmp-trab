@@ -7,13 +7,13 @@ import org.snmp4j.TransportMapping;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
-import org.snmp4j.transport.DefaultSshTransportMapping;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import ufrgs.network.manager.data.Client;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -47,7 +47,7 @@ public class Discover {
         snmp = new Snmp(transportMapping);
     }
 
-    public List<Client> searchClients(String address, String port, Integer timeout) throws IOException, InterruptedException {
+    public List<Client> searchClients(String address, String port, Integer timeout, JProgressBar searchProgress) throws IOException, InterruptedException {
         communityTarget.setRetries(1);
         communityTarget.setTimeout(timeout);
 
@@ -56,6 +56,7 @@ public class Discover {
         List<Client> clientList = new ArrayList<>();
 
         for (int i = 1; i <= 254; i++) {
+            searchProgress.setValue(i);
             String probableClient = nums[0] + "." + nums[1] + "." + nums[2] + "." + Integer.toString(i) + "/" + port;
 
             communityTarget.setAddress(new UdpAddress(probableClient));

@@ -37,6 +37,7 @@ public class MainWindow {
     private JButton updateCurSystemLocation;
     private JTable networkInterfacesTable;
     private JSlider searchTimeoutSlider;
+    private JProgressBar searchProgress;
     private JFrame mainFrame;
     private Database database;
 
@@ -48,6 +49,7 @@ public class MainWindow {
         clientTable.setModel(new ClientTableModel(database.getClientList()));
         servicesTable.setModel(new ServiceTableModel(new ArrayList<ClientService>()));
         networkInterfacesTable.setModel(new NetworkInterfaceTableModel(new ArrayList<NetworkInterface>()));
+        searchProgress.setValue(searchProgress.getMaximum());
 
         clientTable.addMouseListener(new MouseAdapter() {
             @Override
@@ -68,15 +70,33 @@ public class MainWindow {
             @Override
             public void actionPerformed(ActionEvent e) {
                 searchButton.setEnabled(false);
-                try {
-                    database.addClients(new Discover().searchClients(searchStart.getText(), searchPort.getText(), searchTimeoutSlider.getValue()));
-                    clientTable.setModel(new ClientTableModel(database.getClientList()));
-                    clientsFoundField.setText(String.valueOf(database.getClientList().size()));
-                    lastUpdateField.setText(database.getLastUpdate());
-                } catch (IOException | InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-                searchButton.setEnabled(true);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            List<Client> clientList = new Discover().searchClients(searchStart.getText(), searchPort.getText(), searchTimeoutSlider.getValue(), searchProgress);
+                            database.addClients(clientList);
+                            SwingUtilities.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    clientTable.setModel(new ClientTableModel(database.getClientList()));
+                                    clientsFoundField.setText(String.valueOf(database.getClientList().size()));
+                                    lastUpdateField.setText(database.getLastUpdate());
+
+                                    searchButton.setEnabled(true);
+                                }
+                            });
+
+                            String clientsFound = "Clients Found: \n";
+                            for (Client client : clientList) {
+                                clientsFound += "[" + client.getAddress() + "] " + client.getSystemLocation() + ": " + client.getSystemDescription() + "\n";
+                            }
+                            JOptionPane.showMessageDialog(mainFrame, clientsFound, "Search Result", JOptionPane.INFORMATION_MESSAGE);
+                        } catch (IOException | InterruptedException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                }).start();
             }
         });
 
@@ -95,17 +115,17 @@ public class MainWindow {
     }
 
     public void updateDatabase() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    List<Client> updatedClientList = new ArrayList<>();
-                    Discover discover = new Discover();
-                    for (Client client : database.getClientList()) {
-                        updatedClientList.add(discover.getClient(client.getAddress()));
-                    }
-                    database.addClients(updatedClientList);
+        try {
+            List<Client> updatedClientList = new ArrayList<>();
+            Discover discover = new Discover();
+            for (Client client : database.getClientList()) {
+                updatedClientList.add(discover.getClient(client.getAddress()));
+            }
+            database.addClients(updatedClientList);
 
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
                     clientTable.setModel(new ClientTableModel(database.getClientList()));
                     clientsFoundField.setText(String.valueOf(database.getClientList().size()));
                     lastUpdateField.setText(database.getLastUpdate());
@@ -117,11 +137,11 @@ public class MainWindow {
                         //curSystemLocation.setText(client.getSystemLocation());
                         curSystemDescription.setText(client.getSystemDescription());
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
-            }
-        });
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void run() {

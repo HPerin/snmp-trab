@@ -7,7 +7,9 @@ import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.util.*;
+import sun.nio.ch.Net;
 import ufrgs.network.manager.data.ClientService;
+import ufrgs.network.manager.data.NetworkInterface;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,6 +37,73 @@ public class InfoProvider {
         communityTarget.setTimeout(1000);
 
         snmp = new Snmp(transportMapping);
+    }
+
+    public List<NetworkInterface> getNetworkInterfaces(String address) {
+        communityTarget.setAddress(new UdpAddress(address));
+
+        TreeUtils treeUtils = new TreeUtils(snmp, new DefaultPDUFactory());
+        List<TreeEvent> events = treeUtils.getSubtree(communityTarget, new OID("1.3.6.1.2.1.2.2"));
+        if (events == null || events.size() == 0) {
+            return null;
+        }
+
+        NetworkInterface networkInterfaceArray[] = new NetworkInterface[1000];
+
+        for (TreeEvent event : events) {
+            if (event != null) {
+                if (event.isError()) {
+                    System.err.println(event.getErrorMessage());
+                    return null;
+                }
+
+                VariableBinding[] variableBindings = event.getVariableBindings();
+                if (variableBindings == null || variableBindings.length == 0) {
+                    System.err.println("no event returned");
+                    return null;
+                }
+
+                for (VariableBinding variableBinding : variableBindings) {
+                    if (variableBinding.getOid().startsWith(new OID("1.3.6.1.2.1.2.2.1.2"))) {
+                        int id = variableBinding.getOid().get(10);
+                        // ifDescr
+                        if (networkInterfaceArray[id] == null) {
+                            networkInterfaceArray[id] = new NetworkInterface();
+                        }
+                        networkInterfaceArray[id].setDescription(variableBinding.getVariable().toString());
+                    } else if (variableBinding.getOid().startsWith(new OID("1.3.6.1.2.1.2.2.1.5"))) {
+                        int id = variableBinding.getOid().get(10);
+                        // ifSpeed
+                        if (networkInterfaceArray[id] == null) {
+                            networkInterfaceArray[id] = new NetworkInterface();
+                        }
+                        networkInterfaceArray[id].setSpeed(variableBinding.getVariable().toInt());
+                    } else if (variableBinding.getOid().startsWith(new OID("1.3.6.1.2.1.2.2.1.10"))) {
+                        int id = variableBinding.getOid().get(10);
+                        // ifInOctets
+                        if (networkInterfaceArray[id] == null) {
+                            networkInterfaceArray[id] = new NetworkInterface();
+                        }
+                        networkInterfaceArray[id].setInOctets(variableBinding.getVariable().toInt());
+                    } else if (variableBinding.getOid().startsWith(new OID("1.3.6.1.2.1.2.2.1.16"))) {
+                        int id = variableBinding.getOid().get(10);
+                        // serviceName
+                        if (networkInterfaceArray[id] == null) {
+                            networkInterfaceArray[id] = new NetworkInterface();
+                        }
+                        networkInterfaceArray[id].setOutOctets(variableBinding.getVariable().toInt());
+                    }
+                }
+            }
+        }
+
+        List<NetworkInterface> networkInterfaceList = new ArrayList<>();
+        for (NetworkInterface networkInterface : networkInterfaceArray) {
+            if (networkInterface != null) {
+                networkInterfaceList.add(networkInterface);
+            }
+        }
+        return networkInterfaceList;
     }
 
     public List<ClientService> getClientServices(String address) throws IOException {

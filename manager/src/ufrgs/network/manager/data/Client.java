@@ -11,6 +11,7 @@ public class Client {
     private String systemDescription;
     private String systemLocation;
     private List<ClientService> clientServiceList;
+    private List<NetworkInterface> networkInterfaceList;
 
     public String getAddress() {
         return address;
@@ -52,5 +53,13 @@ public class Client {
 
     public void setSystemLocation(String systemLocation) {
         this.systemLocation = systemLocation;
+    }
+
+    public List<NetworkInterface> getNetworkInterfaceList() {
+        return networkInterfaceList;
+    }
+
+    public void setNetworkInterfaceList(List<NetworkInterface> networkInterfaceList) {
+        this.networkInterfaceList = networkInterfaceList;
     }
 }

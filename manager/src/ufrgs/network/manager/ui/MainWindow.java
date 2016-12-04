@@ -2,7 +2,9 @@ package ufrgs.network.manager.ui;
 
 import ufrgs.network.manager.data.Client;
 import ufrgs.network.manager.data.ClientService;
+import ufrgs.network.manager.data.NetworkInterface;
 import ufrgs.network.manager.model.ClientTableModel;
+import ufrgs.network.manager.model.NetworkInterfaceTableModel;
 import ufrgs.network.manager.model.ServiceTableModel;
 import ufrgs.network.manager.network.Database;
 import ufrgs.network.manager.network.Discover;
@@ -36,6 +38,7 @@ public class MainWindow {
     private JTextField lastUpdateField;
     private JTextField curSystemLocation;
     private JButton updateCurSystemLocation;
+    private JTable networkIntefacesTable;
     private JFrame mainFrame;
     private Database database;
 
@@ -46,6 +49,7 @@ public class MainWindow {
         database = Database.loadFromFile();
         clientTable.setModel(new ClientTableModel(database.getClientList()));
         servicesTable.setModel(new ServiceTableModel(new ArrayList<ClientService>()));
+        networkIntefacesTable.setModel(new NetworkInterfaceTableModel(new ArrayList<NetworkInterface>()));
 
         clientTable.addMouseListener(new MouseAdapter() {
             @Override
@@ -57,6 +61,7 @@ public class MainWindow {
                     curSystemDescription.setText(client.getSystemDescription());
                     curSystemLocation.setText(client.getSystemLocation());
                     servicesTable.setModel(new ServiceTableModel(client.getClientServiceList()));
+                    networkIntefacesTable.setModel(new NetworkInterfaceTableModel(client.getNetworkInterfaceList()));
                 }
             }
         });
@@ -107,6 +112,7 @@ public class MainWindow {
                     if (!curAddress.getText().equals("")) {
                         Client client = database.getClient(curAddress.getText());
                         servicesTable.setModel(new ServiceTableModel(client.getClientServiceList()));
+                        networkIntefacesTable.setModel(new NetworkInterfaceTableModel(client.getNetworkInterfaceList()));
                         curAddress.setText(client.getAddress());
                         //curSystemLocation.setText(client.getSystemLocation());
                         curSystemDescription.setText(client.getSystemDescription());

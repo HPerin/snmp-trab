@@ -47,6 +47,9 @@ public class Discover {
     }
 
     public List<Client> searchClients(String address, String port) throws IOException {
+        communityTarget.setRetries(1);
+        communityTarget.setTimeout(10);
+
         String nums[] = address.split(Pattern.quote("."));
 
         List<Client> clientList = new ArrayList<>();
@@ -76,6 +79,7 @@ public class Discover {
                         }
 
                         client.setClientServiceList(new InfoProvider().getClientServices(client.getAddress()));
+                        client.setNetworkInterfaceList(new InfoProvider().getNetworkInterfaces(client.getAddress()));
                         clientList.add(client);
                     }
                 }
@@ -86,6 +90,9 @@ public class Discover {
     }
 
     public Client getClient(String address) throws IOException {
+        communityTarget.setRetries(3);
+        communityTarget.setTimeout(100);
+
         communityTarget.setAddress(new UdpAddress(address));
         ResponseEvent responseEvent = snmp.get(pdu, communityTarget);
         if (responseEvent != null) {
@@ -107,6 +114,7 @@ public class Discover {
                         client.setSystemLocation(String.valueOf(responsePDU.get(1).getVariable().toString()));
                     }
                     client.setClientServiceList(new InfoProvider().getClientServices(client.getAddress()));
+                    client.setNetworkInterfaceList(new InfoProvider().getNetworkInterfaces(client.getAddress()));
                     return client;
                 }
             }

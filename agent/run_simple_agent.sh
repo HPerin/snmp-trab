@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # python-netsnmpagent simple example agent
 #

@@ -7,6 +7,7 @@ import ufrgs.network.manager.model.ServiceTableModel;
 import ufrgs.network.manager.network.Database;
 import ufrgs.network.manager.network.Discover;
 import ufrgs.network.manager.network.InfoProvider;
+import ufrgs.network.manager.network.InfoUpdater;
 
 import javax.swing.*;
 import javax.xml.crypto.Data;
@@ -33,6 +34,8 @@ public class MainWindow {
     private JTextField curSystemDescription;
     private JTextField searchPort;
     private JTextField lastUpdateField;
+    private JTextField curSystemLocation;
+    private JButton updateCurSystemLocation;
     private JFrame mainFrame;
     private Database database;
 
@@ -52,6 +55,7 @@ public class MainWindow {
                     Client client = database.getClient(String.valueOf(clientTable.getModel().getValueAt(row, 0)));
                     curAddress.setText(client.getAddress());
                     curSystemDescription.setText(client.getSystemDescription());
+                    curSystemLocation.setText(client.getSystemLocation());
                     servicesTable.setModel(new ServiceTableModel(client.getClientServiceList()));
                 }
             }
@@ -65,6 +69,19 @@ public class MainWindow {
                     clientTable.setModel(new ClientTableModel(database.getClientList()));
                     clientsFoundField.setText(String.valueOf(database.getClientList().size()));
                     lastUpdateField.setText(database.getLastUpdate());
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+
+        updateCurSystemLocation.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    if (!new InfoUpdater().updateSystemLocation(curAddress.getText(), curSystemLocation.getText())) {
+                        curSystemLocation.setText(database.getClient(curAddress.getText()).getSystemLocation());
+                    }
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -91,6 +108,7 @@ public class MainWindow {
                         Client client = database.getClient(curAddress.getText());
                         servicesTable.setModel(new ServiceTableModel(client.getClientServiceList()));
                         curAddress.setText(client.getAddress());
+                        //curSystemLocation.setText(client.getSystemLocation());
                         curSystemDescription.setText(client.getSystemDescription());
                     }
                 } catch (IOException e) {

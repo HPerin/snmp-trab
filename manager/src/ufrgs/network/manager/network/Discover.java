@@ -39,6 +39,7 @@ public class Discover {
 
         pdu = new PDU();
         pdu.add(new VariableBinding(new OID("1.3.6.1.2.1.1.1.0")));
+        pdu.add(new VariableBinding(new OID("1.3.6.1.2.1.1.6.0")));
         pdu.setType(PDU.GET);
         pdu.setRequestID(new Integer32(1));
 
@@ -62,7 +63,18 @@ public class Discover {
                     if (errorStatus == PDU.noError) {
                         Client client = new Client();
                         client.setAddress(probableClient);
-                        client.setSystemDescription(String.valueOf(responsePDU.get(0).getVariable().toString()));
+                        if (responsePDU.get(0).getOid().equals(new OID("1.3.6.1.2.1.1.1.0"))) {
+                            client.setSystemDescription(String.valueOf(responsePDU.get(0).getVariable().toString()));
+                        } else {
+                            client.setSystemLocation(String.valueOf(responsePDU.get(0).getVariable().toString()));
+                        }
+
+                        if (responsePDU.get(1).getOid().equals(new OID("1.3.6.1.2.1.1.1.0"))) {
+                            client.setSystemDescription(String.valueOf(responsePDU.get(1).getVariable().toString()));
+                        } else {
+                            client.setSystemLocation(String.valueOf(responsePDU.get(1).getVariable().toString()));
+                        }
+
                         client.setClientServiceList(new InfoProvider().getClientServices(client.getAddress()));
                         clientList.add(client);
                     }
@@ -83,7 +95,17 @@ public class Discover {
                 if (errorStatus == PDU.noError) {
                     Client client = new Client();
                     client.setAddress(address);
-                    client.setSystemDescription(String.valueOf(responsePDU.get(0).getVariable().toString()));
+                    if (responsePDU.get(0).getOid().equals(new OID("1.3.6.1.2.1.1.1.0"))) {
+                        client.setSystemDescription(String.valueOf(responsePDU.get(0).getVariable().toString()));
+                    } else {
+                        client.setSystemLocation(String.valueOf(responsePDU.get(0).getVariable().toString()));
+                    }
+
+                    if (responsePDU.get(1).getOid().equals(new OID("1.3.6.1.2.1.1.1.0"))) {
+                        client.setSystemDescription(String.valueOf(responsePDU.get(1).getVariable().toString()));
+                    } else {
+                        client.setSystemLocation(String.valueOf(responsePDU.get(1).getVariable().toString()));
+                    }
                     client.setClientServiceList(new InfoProvider().getClientServices(client.getAddress()));
                     return client;
                 }
@@ -93,6 +115,7 @@ public class Discover {
         Client client = new Client();
         client.setAddress(address);
         client.setSystemDescription("Down");
+        client.setSystemLocation("Down");
         return client;
     }
 }

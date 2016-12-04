@@ -87,17 +87,17 @@ fullPath  OBJECT-TYPE
 		""
 	::= { serviceEntry 5 }
 
-simpleCounter  OBJECT-TYPE
-	SYNTAX     Integer32
+addServiceName  OBJECT-TYPE
+	SYNTAX     OCTET STRING
 	MAX-ACCESS read-write
 	STATUS     current
 	DESCRIPTION
 		""
 	::= { enterprises 4 }
 
-serviceTableCounter  OBJECT-TYPE
-	SYNTAX     Integer32
-	MAX-ACCESS read-only
+delServiceName  OBJECT-TYPE
+	SYNTAX     OCTET STRING
+	MAX-ACCESS read-write
 	STATUS     current
 	DESCRIPTION
 		""

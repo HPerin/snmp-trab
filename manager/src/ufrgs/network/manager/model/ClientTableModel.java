@@ -33,8 +33,8 @@ public class ClientTableModel implements TableModel {
     public String getColumnName(int columnIndex) {
         switch (columnIndex) {
             case 0: return "Address";
-            case 1: return "Description";
-            case 2: return "Services down";
+            case 1: return "System Location";
+            case 2: return "Services Down";
         }
 
         return null;
@@ -54,7 +54,7 @@ public class ClientTableModel implements TableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         switch (columnIndex) {
             case 0: return clientList.get(rowIndex).getAddress();
-            case 1: return clientList.get(rowIndex).getSystemDescription();
+            case 1: return clientList.get(rowIndex).getSystemLocation();
             case 2: return clientList.get(rowIndex).getServiceDownCount();
         }
 

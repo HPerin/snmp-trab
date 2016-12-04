@@ -9,6 +9,7 @@ public class Client {
 
     private String address;
     private String systemDescription;
+    private String systemLocation;
     private List<ClientService> clientServiceList;
 
     public String getAddress() {
@@ -43,5 +44,13 @@ public class Client {
                 count++;
         }
         return count;
+    }
+
+    public String getSystemLocation() {
+        return systemLocation;
+    }
+
+    public void setSystemLocation(String systemLocation) {
+        this.systemLocation = systemLocation;
     }
 }

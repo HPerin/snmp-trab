@@ -44,17 +44,14 @@ except netsnmpagent.netsnmpAgentException as e:
 serviceTable = agent.Table(
     oidstr="SERVICE-HEALTH::serviceTable",
     indexes=[
-        agent.Integer32()
+        agent.Integer32(writable=True)
     ],
     columns=[
-        (2, agent.OctetString("UnknownName")),
-        (3, agent.OctetString("UnknownState")),
-        (4, agent.OctetString("")),
-        (5, agent.OctetString(""))
+        (2, agent.OctetString("UnknownName",writable=True)),
+        (3, agent.OctetString("UnknownState",writable=True)),
+        (4, agent.OctetString("",writable=True)),
+        (5, agent.OctetString("",writable=True))
     ],
-    counterobj=agent.Integer32(
-        oidstr="SERVICE-HEALTH::serviceTableCounter"
-    ),
     extendable=True
 )
 
@@ -69,11 +66,6 @@ serviceTableHttpd.setRowCell(2, agent.OctetString("httpd"))
 serviceTableHttpd.setRowCell(3, agent.OctetString(""))
 serviceTableHttpd.setRowCell(4, agent.OctetString(""))
 serviceTableHttpd.setRowCell(5, agent.OctetString(""))
-
-simpleCounter = agent.Integer32(
-    oidstr="SERVICE-HEALTH::simpleCounter",
-    writable=True
-)
 
 try:
     agent.start()

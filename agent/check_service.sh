@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 OUTPUT=`ps -eo pid,comm,lstart,etime,time,args | grep $1`
 SERVICE_NAME=`echo $OUTPUT | cut -d ' ' -f 2`
 

@@ -9,6 +9,7 @@ import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultSshTransportMapping;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
+import ufrgs.network.manager.data.Client;
 
 import java.io.IOException;
 import java.util.*;
@@ -44,13 +45,13 @@ public class Discover {
         snmp = new Snmp(transportMapping);
     }
 
-    public Map<String, String> searchClients(String address) throws IOException {
+    public List<Client> searchClients(String address, String port) throws IOException {
         String nums[] = address.split(Pattern.quote("."));
 
-        Map<String, String> clientMap = new HashMap<>();
+        List<Client> clientList = new ArrayList<>();
 
         for (int i = 1; i <= 254; i++) {
-            String probableClient = nums[0] + "." + nums[1] + "." + nums[2] + "." + Integer.toString(i) + "/5555";
+            String probableClient = nums[0] + "." + nums[1] + "." + nums[2] + "." + Integer.toString(i) + "/" + port;
 
             communityTarget.setAddress(new UdpAddress(probableClient));
             ResponseEvent responseEvent = snmp.get(pdu, communityTarget);
@@ -59,12 +60,39 @@ public class Discover {
                 if (responsePDU != null) {
                     int errorStatus = responsePDU.getErrorStatus();
                     if (errorStatus == PDU.noError) {
-                        clientMap.put(probableClient, String.valueOf(responsePDU.get(0).getVariable().toString()));
+                        Client client = new Client();
+                        client.setAddress(probableClient);
+                        client.setSystemDescription(String.valueOf(responsePDU.get(0).getVariable().toString()));
+                        client.setClientServiceList(new InfoProvider().getClientServices(client.getAddress()));
+                        clientList.add(client);
                     }
                 }
             }
         }
 
-        return clientMap;
+        return clientList;
+    }
+
+    public Client getClient(String address) throws IOException {
+        communityTarget.setAddress(new UdpAddress(address));
+        ResponseEvent responseEvent = snmp.get(pdu, communityTarget);
+        if (responseEvent != null) {
+            PDU responsePDU = responseEvent.getResponse();
+            if (responsePDU != null) {
+                int errorStatus = responsePDU.getErrorStatus();
+                if (errorStatus == PDU.noError) {
+                    Client client = new Client();
+                    client.setAddress(address);
+                    client.setSystemDescription(String.valueOf(responsePDU.get(0).getVariable().toString()));
+                    client.setClientServiceList(new InfoProvider().getClientServices(client.getAddress()));
+                    return client;
+                }
+            }
+        }
+
+        Client client = new Client();
+        client.setAddress(address);
+        client.setSystemDescription("Down");
+        return client;
     }
 }

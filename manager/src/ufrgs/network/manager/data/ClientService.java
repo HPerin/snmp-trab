@@ -3,7 +3,7 @@ package ufrgs.network.manager.data;
 /**
  * Created by lucas on 12/3/16.
  */
-public class ClientServices {
+public class ClientService {
 
     private String name;
     private String uptime;

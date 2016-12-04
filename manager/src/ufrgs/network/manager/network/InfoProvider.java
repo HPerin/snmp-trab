@@ -1,19 +1,16 @@
 package ufrgs.network.manager.network;
 
 import org.snmp4j.CommunityTarget;
-import org.snmp4j.PDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
-import org.snmp4j.util.DefaultPDUFactory;
-import org.snmp4j.util.PDUFactory;
-import org.snmp4j.util.TableEvent;
-import org.snmp4j.util.TableUtils;
-import ufrgs.network.manager.data.ClientServices;
+import org.snmp4j.util.*;
+import ufrgs.network.manager.data.ClientService;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,7 +21,6 @@ public class InfoProvider {
     private String community = "simple";
     private TransportMapping transportMapping;
     private Snmp snmp;
-    private PDU pdu;
     private CommunityTarget communityTarget;
 
     public InfoProvider() throws IOException {
@@ -38,37 +34,73 @@ public class InfoProvider {
         communityTarget.setRetries(2);
         communityTarget.setTimeout(1000);
 
-        pdu = new PDU();
-        pdu.add(new VariableBinding(new OID("1.3.6.1.2.1.1.1.0")));
-        pdu.setType(PDU.GET);
-        pdu.setRequestID(new Integer32(1));
-
         snmp = new Snmp(transportMapping);
     }
 
-    public List<ClientServices> getClientServices(String address) {
+    public List<ClientService> getClientServices(String address) throws IOException {
         communityTarget.setAddress(new UdpAddress(address));
 
-        PDUFactory pduFactory = new DefaultPDUFactory(PDU.GETNEXT);
-        TableUtils tableUtils = new TableUtils(snmp, pduFactory);
-
-        OID[] columns = new OID[4];
-        columns[0] = new VariableBinding(new OID("1.3.6.1.4.1.3.1.2")).getOid();
-        columns[1] = new VariableBinding(new OID("1.3.6.1.4.1.3.1.3")).getOid();
-        columns[2] = new VariableBinding(new OID("1.3.6.1.4.1.3.1.4")).getOid();
-        columns[3] = new VariableBinding(new OID("1.3.6.1.4.1.3.1.5")).getOid();
-
-        OID lowerBoundIndex = new OID("1.3.6.1.4.1.3.1");
-        OID upperBoundIndex = new OID("1.3.6.1.4.1.3.2");
-
-        List<TableEvent> snmpList = tableUtils.getTable(communityTarget, columns, lowerBoundIndex, upperBoundIndex);
-
-        System.out.println(snmpList.size());
-
-        for (TableEvent tableEvent : snmpList) {
-            System.out.println(tableEvent.getErrorMessage());
+        TreeUtils treeUtils = new TreeUtils(snmp, new DefaultPDUFactory());
+        List<TreeEvent> events = treeUtils.getSubtree(communityTarget, new OID("1.3.6.1.4.1.3"));
+        if (events == null || events.size() == 0) {
+            return null;
         }
 
-        return null;
+        ClientService clientServiceArray[] = new ClientService[1000];
+
+        for (TreeEvent event : events) {
+            if (event != null) {
+                if (event.isError()) {
+                    System.err.println(event.getErrorMessage());
+                    return null;
+                }
+
+                VariableBinding[] variableBindings = event.getVariableBindings();
+                if (variableBindings == null || variableBindings.length == 0) {
+                    System.err.println("no event returned");
+                    return null;
+                }
+
+                for (VariableBinding variableBinding : variableBindings) {
+                    if (variableBinding.getOid().startsWith(new OID("1.3.6.1.4.1.3.1.2"))) {
+                        int id = variableBinding.getOid().get(9);
+                        // serviceName
+                        if (clientServiceArray[id] == null) {
+                            clientServiceArray[id] = new ClientService();
+                        }
+                        clientServiceArray[id].setName(variableBinding.getVariable().toString());
+                    } else if (variableBinding.getOid().startsWith(new OID("1.3.6.1.4.1.3.1.3"))) {
+                        int id = variableBinding.getOid().get(9);
+                        // serviceStatus
+                        if (clientServiceArray[id] == null) {
+                            clientServiceArray[id] = new ClientService();
+                        }
+                        clientServiceArray[id].setStatus(variableBinding.getVariable().toString());
+                    } else if (variableBinding.getOid().startsWith(new OID("1.3.6.1.4.1.3.1.4"))) {
+                        int id = variableBinding.getOid().get(9);
+                        // upTime
+                        if (clientServiceArray[id] == null) {
+                            clientServiceArray[id] = new ClientService();
+                        }
+                        clientServiceArray[id].setUptime(variableBinding.getVariable().toString());
+                    } else if (variableBinding.getOid().startsWith(new OID("1.3.6.1.4.1.3.1.5"))) {
+                        int id = variableBinding.getOid().get(9);
+                        // fullPath
+                        if (clientServiceArray[id] == null) {
+                            clientServiceArray[id] = new ClientService();
+                        }
+                        clientServiceArray[id].setPath(variableBinding.getVariable().toString());
+                    }
+                }
+            }
+        }
+
+        List<ClientService> clientServiceList = new ArrayList<>();
+        for (ClientService clientService : clientServiceArray) {
+            if (clientService != null) {
+                clientServiceList.add(clientService);
+            }
+        }
+        return clientServiceList;
     }
 }

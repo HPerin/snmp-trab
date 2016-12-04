@@ -55,17 +55,31 @@ serviceTable = agent.Table(
     extendable=True
 )
 
-serviceTableSnmpd = serviceTable.addRow([agent.Integer32(0)])
-serviceTableSnmpd.setRowCell(2, agent.OctetString("snmpd"))
-serviceTableSnmpd.setRowCell(3, agent.OctetString(""))
-serviceTableSnmpd.setRowCell(4, agent.OctetString(""))
-serviceTableSnmpd.setRowCell(5, agent.OctetString(""))
+with open('services.txt') as f:
+    services = f.read().splitlines()
 
-serviceTableHttpd = serviceTable.addRow([agent.Integer32(1)])
-serviceTableHttpd.setRowCell(2, agent.OctetString("httpd"))
-serviceTableHttpd.setRowCell(3, agent.OctetString(""))
-serviceTableHttpd.setRowCell(4, agent.OctetString(""))
-serviceTableHttpd.setRowCell(5, agent.OctetString(""))
+index = 0
+serviceList = []
+for service in services:
+    curService = serviceTable.addRow([agent.Integer32(index)])
+    curService.setRowCell(2, agent.OctetString(service))
+    serviceList.append({
+        'row': curService,
+        'name': service
+    })
+    index += 1
+
+# serviceTableSnmpd = serviceTable.addRow([agent.Integer32(0)])
+# serviceTableSnmpd.setRowCell(2, agent.OctetString("snmpd"))
+# serviceTableSnmpd.setRowCell(3, agent.OctetString(""))
+# serviceTableSnmpd.setRowCell(4, agent.OctetString(""))
+# serviceTableSnmpd.setRowCell(5, agent.OctetString(""))
+#
+# serviceTableHttpd = serviceTable.addRow([agent.Integer32(1)])
+# serviceTableHttpd.setRowCell(2, agent.OctetString("httpd"))
+# serviceTableHttpd.setRowCell(3, agent.OctetString(""))
+# serviceTableHttpd.setRowCell(4, agent.OctetString(""))
+# serviceTableHttpd.setRowCell(5, agent.OctetString(""))
 
 try:
     agent.start()
@@ -110,23 +124,33 @@ while (loop):
     # Block and process SNMP requests, if available
     agent.check_and_process()
 
-    output = subprocess.Popen(["bash", "check_service.sh", "snmpd"], stdout=subprocess.PIPE).communicate()[0]
-    output = output.split('\n', -1)
-    if output[0] == '1':
-        serviceTableSnmpd.setRowCell(3, agent.OctetString("running"))
-        serviceTableSnmpd.setRowCell(4, agent.OctetString(output[2]))
-        serviceTableSnmpd.setRowCell(5, agent.OctetString(output[3]))
-    else:
-        serviceTableSnmpd.setRowCell(3, agent.OctetString("stopped"))
+    for service in serviceList:
+        output = subprocess.Popen(["bash", "check_service.sh", service['name']], stdout=subprocess.PIPE).communicate()[0]
+        output = output.split('\n', -1)
+        if output[0] == '1':
+            service['row'].setRowCell(3, agent.OctetString("running"))
+            service['row'].setRowCell(4, agent.OctetString(output[2]))
+            service['row'].setRowCell(5, agent.OctetString(output[3]))
+        else:
+            service['row'].setRowCell(3, agent.OctetString("stopped"))
 
-    output = subprocess.Popen(["bash", "check_service.sh", "httpd"], stdout=subprocess.PIPE).communicate()[0]
-    output = output.split('\n', -1)
-    if output[0] == '1':
-        serviceTableHttpd.setRowCell(3, agent.OctetString("running"))
-        serviceTableHttpd.setRowCell(4, agent.OctetString(output[2]))
-        serviceTableHttpd.setRowCell(5, agent.OctetString(output[3]))
-    else:
-        serviceTableHttpd.setRowCell(3, agent.OctetString("stopped"))
+    # output = subprocess.Popen(["bash", "check_service.sh", "snmpd"], stdout=subprocess.PIPE).communicate()[0]
+    # output = output.split('\n', -1)
+    # if output[0] == '1':
+    #     serviceTableSnmpd.setRowCell(3, agent.OctetString("running"))
+    #     serviceTableSnmpd.setRowCell(4, agent.OctetString(output[2]))
+    #     serviceTableSnmpd.setRowCell(5, agent.OctetString(output[3]))
+    # else:
+    #     serviceTableSnmpd.setRowCell(3, agent.OctetString("stopped"))
+    #
+    # output = subprocess.Popen(["bash", "check_service.sh", "httpd"], stdout=subprocess.PIPE).communicate()[0]
+    # output = output.split('\n', -1)
+    # if output[0] == '1':
+    #     serviceTableHttpd.setRowCell(3, agent.OctetString("running"))
+    #     serviceTableHttpd.setRowCell(4, agent.OctetString(output[2]))
+    #     serviceTableHttpd.setRowCell(5, agent.OctetString(output[3]))
+    # else:
+    #     serviceTableHttpd.setRowCell(3, agent.OctetString("stopped"))
 
 print("{0}: Terminating.".format(prgname))
 agent.shutdown()

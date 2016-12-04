@@ -20,6 +20,7 @@ public class NetworkInterfaceTableModel implements TableModel {
 
     @Override
     public int getRowCount() {
+        if (networkInterfaceList == null) return 0;
         return networkInterfaceList.size();
     }
 

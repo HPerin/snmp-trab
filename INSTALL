@@ -1,0 +1,16 @@
+Agent:
+
+Requirements:
+You need to have snmpd installed and running for the agent to work as expected.
+
+1. Edit services.txt with the names of the services that you wish to monitor (1 for each line).
+2. Run the "run_simple_agent.sh" with the current directory being where the other 4 files are (check_service.sh, service.mib, simple_agent.py, services.txt).
+3. Now the agent is running in the default port 5555. If you wish to change, just open run_simple_agent.sh and edit it.
+
+Manager:
+
+Requirements:
+You need to have permission to open and write files in the current directory.
+Also, you need to have java jre8 installed to run the jar file.
+
+1. Run "java -jar manager.jar".
